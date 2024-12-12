@@ -1,35 +1,9 @@
+import aoc_2024/matrix.{type Matrix}
 import gleam/int
 import gleam/list
 import gleam/result
 import gleam/string
 import gleam/yielder
-import glearray
-
-// Little matrix library
-
-pub opaque type Matrix(a) {
-  Matrix(data: glearray.Array(a), width: Int, height: Int)
-}
-
-fn get(matrix: Matrix(a), x: Int, y: Int) -> Result(a, Nil) {
-  let w = matrix.width
-  let h = matrix.height
-  case { x < 0 || y < 0 || x >= w || y >= h } {
-    True -> Error(Nil)
-    _ -> {
-      let w = matrix.width
-      glearray.get(matrix.data, y * w + x)
-    }
-  }
-}
-
-fn from_list_of_lists(lists: List(List(a))) -> Matrix(a) {
-  let assert [l, ..] = lists
-  let w = list.length(l)
-  let h = list.length(lists)
-  let data = lists |> list.flatten() |> glearray.from_list()
-  Matrix(data: data, width: w, height: h)
-}
 
 // Day 4
 
@@ -67,7 +41,7 @@ pub fn parse(input: String) -> Matrix(Token) {
       }
     })
   })
-  |> from_list_of_lists()
+  |> matrix.from_list_of_lists()
 }
 
 pub fn pt_1(matrix: Matrix(Token)) {
@@ -99,7 +73,7 @@ fn count_xmas_occurrences(coords: #(Int, Int), matrix: Matrix(Token)) -> Int {
 
 fn occurrs_in_dir(c1: #(Int, Int), matrix: Matrix(Token), dir: Dir) -> Bool {
   let tiles = {
-    use t1 <- result.try(get(matrix, c1.0, c1.1))
+    use t1 <- result.try(matrix.get(matrix, c1.0, c1.1))
     use #(c2, t2) <- result.try(get_in_dir(c1, matrix, dir))
     use #(c3, t3) <- result.try(get_in_dir(c2, matrix, dir))
     use #(_, t4) <- result.try(get_in_dir(c3, matrix, dir))
@@ -116,7 +90,7 @@ fn occurrs_in_dir(c1: #(Int, Int), matrix: Matrix(Token), dir: Dir) -> Bool {
 
 fn x_mas_occurs(coords: #(Int, Int), matrix: Matrix(Token)) -> Bool {
   let tiles = {
-    use t1 <- result.try(get(matrix, coords.0, coords.1))
+    use t1 <- result.try(matrix.get(matrix, coords.0, coords.1))
     use #(_, t2) <- result.try(get_in_dir(coords, matrix, NorthWest))
     use #(_, t3) <- result.try(get_in_dir(coords, matrix, NorthEast))
     use #(_, t4) <- result.try(get_in_dir(coords, matrix, SouthEast))
@@ -161,6 +135,6 @@ fn return_coords(
   x: Int,
   y: Int,
 ) -> Result(#(#(Int, Int), a), Nil) {
-  use elem <- result.try(get(matrix, x, y))
+  use elem <- result.try(matrix.get(matrix, x, y))
   Ok(#(#(x, y), elem))
 }
